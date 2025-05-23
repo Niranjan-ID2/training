@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "reportDate": { "type": "string", "format": "date" },
+    "labName": { "type": "string" },
+    "patientName": { "type": "string" },
+    "patientAge": { "type": "integer", "minimum": 0 },
+    "patientSex": { "type": "string" },
+    "values": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "enum": ["µg/L", "ng/mL"] }
+        // Optional: Add reference_range
+      },
+      "required": ["value", "unit"]
+    }
+  },
+  "required": ["reportDate", "labName", "patientName", "patientAge", "patientSex", "values"]
+}
