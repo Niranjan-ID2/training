@@ -1,14 +1,14 @@
 package com.example.labadaptor.controller;
 
-import com.example.labadaptor.dto.LabReportRequestDTO;
-import com.example.labadaptor.model.BaseReportData;
-import com.example.labadaptor.model.LabReport;
-import com.example.labadaptor.model.values.CrpValue;
+import com.example.labadaptor.dto.LaboratoryReportDTO;
+import com.example.labadaptor.dto.PatientInformationDTO;
+import com.example.labadaptor.model.LaboratoryReport;
 import com.example.labadaptor.service.JsonSchemaValidationService;
 import com.example.labadaptor.service.LabReportService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.ValidationMessage;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,24 +17,22 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*; // Import verify
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.containsString); // For error message checks
-
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(LabReportController.class)
@@ -44,7 +42,7 @@ class LabReportControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper; // Provided by Spring Boot for JSON conversions
+    private ObjectMapper objectMapper;
 
     @MockBean
     private LabReportService labReportService;
@@ -52,148 +50,112 @@ class LabReportControllerTest {
     @MockBean
     private JsonSchemaValidationService schemaValidationService;
 
-    @Test
-    void createLabReport_whenValidRequest_shouldReturnCreated() throws Exception {
-        String reportType = "CRP";
-        CrpValue.ReferenceRange crpRefRange = new CrpValue.ReferenceRange(0.0, 5.0);
-        CrpValue crpValue = new CrpValue(5.0, "mg/L", crpRefRange);
-        
-        LabReportRequestDTO<CrpValue> requestContent = new LabReportRequestDTO<>(
-            LocalDate.now(), "Test Lab", "John Doe", 30, "Male", crpValue);
-        String rawJsonBody = objectMapper.writeValueAsString(requestContent);
+    private LaboratoryReportDTO validReportDTO;
+    private LaboratoryReport sampleReportEntity;
 
-        LabReport mockSavedReport = new LabReport();
-        mockSavedReport.setId(1L);
-        mockSavedReport.setReportType(reportType.toUpperCase());
-        BaseReportData commonData = new BaseReportData(requestContent.getReportDate(), requestContent.getLabName(), requestContent.getPatientName(), requestContent.getPatientAge(), requestContent.getPatientSex());
-        mockSavedReport.setCommonData(commonData);
-        mockSavedReport.setSpecificValuesJson(objectMapper.writeValueAsString(crpValue)); // Controller expects this to be raw JSON
+    @BeforeEach
+    void setUp() {
+        // Setup validReportDTO
+        validReportDTO = new LaboratoryReportDTO();
+        validReportDTO.setLabCode(UUID.randomUUID().toString());
+        validReportDTO.setLabName("Valid Lab");
+        PatientInformationDTO patientInfo = new PatientInformationDTO();
+        patientInfo.setName("John Doe");
+        patientInfo.setAge(30);
+        patientInfo.setGender("Male");
+        patientInfo.setId("P123");
+        validReportDTO.setPatientInformation(patientInfo);
+        validReportDTO.setTestInformation(Collections.emptyList()); // Assuming empty list is valid for simplicity
 
-        // Mock schema validation to pass
-        when(schemaValidationService.validate(anyString(), any(JsonNode.class))).thenReturn(Collections.emptySet());
-        // Mock service layer
-        // The controller constructs its own DTO, so we need to match that, or use a captor.
-        // For simplicity, using any() for the DTO type for now, but more specific matching or captor is better.
-        when(labReportService.createLabReport(any(LabReportRequestDTO.class), eq(reportType.toUpperCase()))).thenReturn(mockSavedReport);
-
-        mockMvc.perform(post("/reports/" + reportType)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(rawJsonBody))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.reportType", is(reportType.toUpperCase())))
-                .andExpect(jsonPath("$.commonData.patientName", is("John Doe")));
-        
-        verify(schemaValidationService).validate(eq(reportType.toUpperCase()), any(JsonNode.class));
-        verify(labReportService).createLabReport(any(LabReportRequestDTO.class), eq(reportType.toUpperCase()));
+        // Setup sampleReportEntity
+        sampleReportEntity = new LaboratoryReport();
+        sampleReportEntity.setId(1L);
+        sampleReportEntity.setLabCode(validReportDTO.getLabCode());
+        sampleReportEntity.setLabName(validReportDTO.getLabName());
+        // ... other fields if needed for response assertion
     }
 
     @Test
-    void createLabReport_whenSchemaValidationFails_shouldReturnBadRequest() throws Exception {
-        String reportType = "CRP";
-        // A valid JSON structure, but schema validation will be mocked to fail
-        String rawJsonBody = "{\"reportDate\": \"2024-01-01\", \"labName\": \"LabX\", \"patientName\": \"Test\", \"patientAge\": 20, \"patientSex\": \"M\", \"values\": {\"value\": 10}}"; 
+    void createLabReport_validRequest_returnsCreated() throws Exception {
+        when(schemaValidationService.validate(any(JsonNode.class), eq("LABORATORY_REPORT")))
+                .thenReturn(Collections.emptySet());
+        when(labReportService.createLabReport(any(LaboratoryReportDTO.class)))
+                .thenReturn(sampleReportEntity);
 
-        Set<ValidationMessage> schemaErrors = new HashSet<>();
-        ValidationMessage error = ValidationMessage.builder().customMessage("Schema validation error").path("$.field").build();
-        schemaErrors.add(error);
-        when(schemaValidationService.validate(anyString(), any(JsonNode.class))).thenReturn(schemaErrors);
-
-        mockMvc.perform(post("/reports/" + reportType)
+        mockMvc.perform(post("/reports/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(rawJsonBody))
+                .content(objectMapper.writeValueAsString(validReportDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.labCode", is(validReportDTO.getLabCode())))
+                .andExpect(jsonPath("$.labName", is(validReportDTO.getLabName())));
+    }
+
+    @Test
+    void createLabReport_schemaValidationFails_returnsBadRequest() throws Exception {
+        Set<ValidationMessage> schemaErrors = new HashSet<>();
+        schemaErrors.add(ValidationMessage.builder().customMessage("Schema validation error at path").path("$.lab_code").build());
+        when(schemaValidationService.validate(any(JsonNode.class), eq("LABORATORY_REPORT")))
+                .thenReturn(schemaErrors);
+
+        mockMvc.perform(post("/reports/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validReportDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$", containsString("JSON schema validation failed: Schema validation error")));
+                .andExpect(jsonPath("$", containsString("JSON schema validation failed: Schema validation error at path")));
+    }
+
+    @Test
+    void createLabReport_beanValidationFails_returnsBadRequest() throws Exception {
+        // Example: labCode is @NotBlank in DTO.
+        LaboratoryReportDTO invalidDto = new LaboratoryReportDTO(); // labCode is null
+        invalidDto.setLabName("Test Lab");
+        // no need to mock schema validation if bean validation catches it first
+        // Spring's @Valid on @RequestBody in controller method handles this
+
+        mockMvc.perform(post("/reports/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isBadRequest())
+                // The exact error message depends on how Spring formats bean validation errors
+                .andExpect(jsonPath("$.labCode", containsString("cannot be blank")));
+                // Or for a general check:
+                // .andExpect(jsonPath("$.errors").exists());
     }
     
     @Test
-    void createLabReport_whenInvalidJsonFormat_shouldReturnBadRequest() throws Exception {
-        String reportType = "CRP";
-        String malformedJsonBody = "{\"reportDate\": \"2024-01-01\", \"labName\": \"LabX\""; // Malformed
+    void createLabReport_JsonProcessingException_returnsBadRequest() throws Exception {
+        // Simulate a scenario where objectMapper.valueToTree(reportDTO) in controller fails
+        // This is hard to trigger directly with MockMvc if the DTO itself is fine for request binding.
+        // However, if the incoming JSON string is malformed, it will be caught by Spring before controller method.
+        // This test case is more about the controller's internal catch block for JsonProcessingException.
+        // For now, we'll assume the service layer might throw it, or the schema validation step.
 
-        // No need to mock schemaValidationService as Jackson parsing will fail first
-        mockMvc.perform(post("/reports/" + reportType)
+        // Let's assume the schemaValidationService.validate call itself might throw it, or the conversion to JsonNode
+        // The current controller structure directly converts DTO to JsonNode. If DTO is fine, this won't be an issue.
+        // A malformed JSON string test:
+         mockMvc.perform(post("/reports/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(malformedJsonBody))
-                .andExpect(status().isBadRequest())
-                // The controller's catch (JsonProcessingException e) should handle this.
-                .andExpect(jsonPath("$", containsString("Invalid JSON format or data"))); 
+                .content("{\"labCode\": \"123\", \"labName\": \"Test Lab\"")) // Missing closing brace for patientInfo
+                .andExpect(status().isBadRequest()); // Spring Boot's default error handling for malformed JSON
     }
 
 
     @Test
-    void createLabReport_whenUnknownReportType_shouldReturnBadRequest() throws Exception {
-        String reportType = "UNKNOWN_TYPE";
-        CrpValue.ReferenceRange crpRefRange = new CrpValue.ReferenceRange(0.0, 5.0);
-        CrpValue crpValue = new CrpValue(5.0, "mg/L", crpRefRange);
-        LabReportRequestDTO<CrpValue> requestContent = new LabReportRequestDTO<>(
-            LocalDate.now(), "Test Lab", "John Doe", 30, "Male", crpValue);
-        String rawJsonBody = objectMapper.writeValueAsString(requestContent);
+    void getLabReportById_existingId_returnsOk() throws Exception {
+        when(labReportService.getLabReportById(1L)).thenReturn(Optional.of(sampleReportEntity));
 
-        // Mock schema validation to pass, so it reaches the unknown type check
-        when(schemaValidationService.validate(anyString(), any(JsonNode.class))).thenReturn(Collections.emptySet());
-
-        mockMvc.perform(post("/reports/" + reportType)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(rawJsonBody))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$", is("Unknown report type: " + reportType)));
-    }
-
-
-    @Test
-    void getLabReportById_whenReportExistsAndTypeMatches_shouldReturnOk() throws Exception {
-        String reportType = "CRP";
-        Long reportId = 1L;
-        CrpValue.ReferenceRange crpRefRange = new CrpValue.ReferenceRange(0.0, 5.0);
-        CrpValue crpValue = new CrpValue(5.0, "mg/L", crpRefRange);
-
-        LabReport mockReport = new LabReport();
-        mockReport.setId(reportId);
-        mockReport.setReportType(reportType.toUpperCase());
-        mockReport.setCommonData(new BaseReportData(LocalDate.now(), "Some Lab", "Jane Doe", 25, "Female"));
-        mockReport.setSpecificValuesJson(objectMapper.writeValueAsString(crpValue));
-
-        when(labReportService.getLabReportById(reportId)).thenReturn(Optional.of(mockReport));
-
-        mockMvc.perform(get("/reports/" + reportType + "/" + reportId))
+        mockMvc.perform(get("/reports/1"))
                 .andExpect(status().isOk())
-                .andDo(MockMvcResultHandlers.print()) // Print response for debugging
-                .andExpect(jsonPath("$.id", is(reportId.intValue())))
-                .andExpect(jsonPath("$.reportType", is(reportType.toUpperCase())))
-                .andExpect(jsonPath("$.commonData.patientName", is("Jane Doe")))
-                .andExpect(jsonPath("$.values.value", is(5.0)))
-                .andExpect(jsonPath("$.values.unit", is("mg/L")))
-                .andExpect(jsonPath("$.values.referenceRange.min", is(0.0)))
-                .andExpect(jsonPath("$.values.referenceRange.max", is(5.0)));
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.labCode", is(sampleReportEntity.getLabCode())));
     }
 
     @Test
-    void getLabReportById_whenReportNotFound_shouldReturnNotFound() throws Exception {
-        String reportType = "CRP";
-        Long reportId = 1L;
-        when(labReportService.getLabReportById(reportId)).thenReturn(Optional.empty());
+    void getLabReportById_nonExistingId_returnsNotFound() throws Exception {
+        when(labReportService.getLabReportById(2L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/reports/" + reportType + "/" + reportId))
+        mockMvc.perform(get("/reports/2"))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void getLabReportById_whenReportExistsButTypeMismatches_shouldReturnNotFound() throws Exception {
-        String pathReportType = "CRP";
-        String actualReportTypeInDb = "TSH"; // Different type stored in DB
-        Long reportId = 1L;
-
-        LabReport mockReport = new LabReport();
-        mockReport.setId(reportId);
-        mockReport.setReportType(actualReportTypeInDb.toUpperCase()); // This is what's "in the database"
-        mockReport.setCommonData(new BaseReportData(LocalDate.now(), "Some Lab", "Jane Doe", 25, "Female"));
-        // Specific values JSON content doesn't strictly matter for this test path, but make it valid
-        mockReport.setSpecificValuesJson("{\"value\": 2.0, \"unit\": \"mIU/L\", \"reference_range\": {\"min\": 0.5, \"max\": 4.5}}");
-
-        when(labReportService.getLabReportById(reportId)).thenReturn(Optional.of(mockReport));
-
-        mockMvc.perform(get("/reports/" + pathReportType + "/" + reportId))
-                .andExpect(status().isNotFound()); // Because controller filters by type, expects path type to match DB type
     }
 }
