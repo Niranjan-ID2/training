@@ -20,7 +20,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class LabReportService {
 
-    private final LaboratoryReportRepository laboratoryReportRepository; // Updated repository
+    private final LaboratoryReportRepository laboratoryReportRepository;
+    private final PatientInformationRepository patientInformationRepository; // Injected repository
 
     // DateTimeFormatters - consider making them static final if used frequently
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -59,28 +60,60 @@ public class LabReportService {
         laboratoryReport.setLabName(reportDTO.getLabName());
         laboratoryReport.setDescription(reportDTO.getDescription());
 
-        // Map PatientInformation
+        // Handle PatientInformation
         if (reportDTO.getPatientInformation() != null) {
             PatientInformationDTO patientDTO = reportDTO.getPatientInformation();
-            PatientInformation patientInformation = new PatientInformation();
-            patientInformation.setName(patientDTO.getName());
-            patientInformation.setAge(patientDTO.getAge());
-            patientInformation.setGender(patientDTO.getGender());
-            patientInformation.setPatientId(patientDTO.getId()); // Assuming DTO's id maps to patientId
-            patientInformation.setLaboratoryReport(laboratoryReport); // Set back-reference
+            String patientBusinessId = patientDTO.getId(); // The unique ID from the DTO
 
-            if (patientDTO.getContactInformation() != null) {
-                patientInformation.setContactInformation(new ArrayList<>());
-                for (ContactInformationDTO contactDTO : patientDTO.getContactInformation()) {
-                    ContactInformation contact = new ContactInformation();
-                    contact.setPhone(contactDTO.getPhone());
-                    contact.setEmail(contactDTO.getEmail());
-                    contact.setAddress(contactDTO.getAddress());
-                    contact.setPatientInformation(patientInformation); // Set back-reference
-                    patientInformation.getContactInformation().add(contact);
+            Optional<PatientInformation> existingPatientOpt = patientInformationRepository.findByPatientId(patientBusinessId);
+
+            PatientInformation patientEntity;
+            if (existingPatientOpt.isPresent()) {
+                patientEntity = existingPatientOpt.get();
+                // Update existing patient's details
+                patientEntity.setName(patientDTO.getName());
+                patientEntity.setAge(patientDTO.getAge());
+                patientEntity.setGender(patientDTO.getGender());
+                // patientEntity.setPatientId(patientDTO.getId()); // ID should not change
+
+                // Manage contacts: Clear old and add new
+                if (patientEntity.getContactInformation() == null) { // Ensure list exists
+                    patientEntity.setContactInformation(new ArrayList<>());
+                }
+                patientEntity.getContactInformation().clear(); // Clear existing contacts
+                if (patientDTO.getContactInformation() != null) {
+                    for (ContactInformationDTO contactDTO : patientDTO.getContactInformation()) {
+                        ContactInformation contactEntity = new ContactInformation();
+                        contactEntity.setPhone(contactDTO.getPhone());
+                        contactEntity.setEmail(contactDTO.getEmail());
+                        contactEntity.setAddress(contactDTO.getAddress());
+                        contactEntity.setPatientInformation(patientEntity); // Set back-reference
+                        patientEntity.getContactInformation().add(contactEntity);
+                    }
+                }
+            } else {
+                patientEntity = new PatientInformation();
+                // Map new patient details
+                patientEntity.setPatientId(patientBusinessId);
+                patientEntity.setName(patientDTO.getName());
+                patientEntity.setAge(patientDTO.getAge());
+                patientEntity.setGender(patientDTO.getGender());
+                
+                patientEntity.setContactInformation(new ArrayList<>()); // Initialize list
+                if (patientDTO.getContactInformation() != null) {
+                    for (ContactInformationDTO contactDTO : patientDTO.getContactInformation()) {
+                        ContactInformation contactEntity = new ContactInformation();
+                        contactEntity.setPhone(contactDTO.getPhone());
+                        contactEntity.setEmail(contactDTO.getEmail());
+                        contactEntity.setAddress(contactDTO.getAddress());
+                        contactEntity.setPatientInformation(patientEntity); // Set back-reference
+                        patientEntity.getContactInformation().add(contactEntity);
+                    }
                 }
             }
-            laboratoryReport.setPatientInformation(patientInformation);
+            // Removed: patientInformation.setLaboratoryReport(laboratoryReport); 
+            // This back-reference is not present in PatientInformation anymore due to ManyToOne from LabReport
+            laboratoryReport.setPatientInformation(patientEntity);
         }
 
         // Map TestInformation list

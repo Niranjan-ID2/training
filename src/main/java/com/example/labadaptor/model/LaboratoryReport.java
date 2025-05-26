@@ -27,7 +27,7 @@ public class LaboratoryReport {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "patient_information_id", referencedColumnName = "id")
     private PatientInformation patientInformation;
 
