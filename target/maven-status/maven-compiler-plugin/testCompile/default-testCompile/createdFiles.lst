@@ -1,0 +1,5 @@
+com/example/labadaptor/service/JsonSchemaValidationServiceTest.class
+com/example/labadaptor/service/LabReportServiceTest.class
+com/example/labadaptor/controller/LabReportControllerTest.class
+com/example/labadaptor/repository/PatientInformationRepositoryTests.class
+com/example/labadaptor/service/JsonSchemaValidationServiceTest$1.class

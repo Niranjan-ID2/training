@@ -94,7 +94,9 @@ class LabReportControllerTest {
     @Test
     void createLabReport_schemaValidationFails_returnsBadRequest() throws Exception {
         Set<ValidationMessage> schemaErrors = new HashSet<>();
-        schemaErrors.add(ValidationMessage.builder().customMessage("Schema validation error at path").path("$.lab_code").build());
+        // The .path() method used here was incorrect for ValidationMessage.Builder
+        // Path information is typically part of the message or derived by the validator.
+        schemaErrors.add(ValidationMessage.builder().customMessage("Schema validation error at path $.lab_code").build());
         when(schemaValidationService.validate(any(JsonNode.class), eq("LABORATORY_REPORT")))
                 .thenReturn(schemaErrors);
 
@@ -102,7 +104,7 @@ class LabReportControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validReportDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$", containsString("JSON schema validation failed: Schema validation error at path")));
+                .andExpect(jsonPath("$", containsString("JSON schema validation failed: Schema validation error at path $.lab_code")));
     }
 
     @Test

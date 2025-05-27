@@ -257,13 +257,13 @@ class JsonSchemaValidationServiceTest {
 
     // Helper to load a schema for testing purposes.
     // This is not used in the final tests as initSchemas is called, but useful for understanding.
-    private JsonSchema loadTestSchema(String schemaPath) throws IOException {
-        JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-        try (InputStream schemaStream = JsonSchemaValidationServiceTest.class.getResourceAsStream(schemaPath)) {
-            if (schemaStream == null) {
-                throw new IOException("Cannot find schema file: " + schemaPath);
-            }
-            return schemaFactory.getSchema(schemaStream);
-        }
-    }
+    // private JsonSchema loadTestSchema(String schemaPath) throws IOException {
+    //     JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+    //     try (InputStream schemaStream = JsonSchemaValidationServiceTest.class.getResourceAsStream(schemaPath)) {
+    //         if (schemaStream == null) {
+    //             throw new IOException("Cannot find schema file: " + schemaPath);
+    //         }
+    //         return schemaFactory.getSchema(schemaStream);
+    //     }
+    // }
 }

@@ -1,0 +1,4 @@
+/app/src/test/java/com/example/labadaptor/controller/LabReportControllerTest.java
+/app/src/test/java/com/example/labadaptor/repository/PatientInformationRepositoryTests.java
+/app/src/test/java/com/example/labadaptor/service/LabReportServiceTest.java
+/app/src/test/java/com/example/labadaptor/service/JsonSchemaValidationServiceTest.java
