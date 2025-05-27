@@ -21,6 +21,6 @@ public class ContactInformation {
     private String address;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_information_id")
+    @JoinColumn(name = "patient_information_id", nullable = false)
     private PatientInformation patientInformation;
 }

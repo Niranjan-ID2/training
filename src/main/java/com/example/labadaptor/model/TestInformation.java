@@ -48,6 +48,6 @@ public class TestInformation {
     private PathologistLabTechnicianInformation pathologistLabTechnicianInformation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "laboratory_report_id")
+    @JoinColumn(name = "laboratory_report_id", nullable = false)
     private LaboratoryReport laboratoryReport;
 }

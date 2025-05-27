@@ -27,6 +27,6 @@ public class TestResult {
     private ReferenceRange referenceRange;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_information_id")
+    @JoinColumn(name = "test_information_id", nullable = false)
     private TestInformation testInformation;
 }

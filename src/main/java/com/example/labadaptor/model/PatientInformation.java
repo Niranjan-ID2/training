@@ -22,7 +22,7 @@ public class PatientInformation {
     private Integer age;
     private String gender;
 
-    @Column(name = "patient_id")
+    @Column(name = "patient_app_id", unique = true)
     private String patientId;
 
     @OneToMany(mappedBy = "patientInformation", cascade = CascadeType.ALL, orphanRemoval = true)
