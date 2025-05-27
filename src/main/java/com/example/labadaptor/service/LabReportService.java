@@ -2,7 +2,8 @@ package com.example.labadaptor.service;
 
 import com.example.labadaptor.dto.*;
 import com.example.labadaptor.model.*;
-import com.example.labadaptor.repository.LaboratoryReportRepository; // Assuming this repository exists or will be created
+import com.example.labadaptor.repository.LabReportRepository; // Corrected import
+import com.example.labadaptor.repository.PatientInformationRepository; // Added import
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class LabReportService {
 
-    private final LaboratoryReportRepository laboratoryReportRepository;
+    private final LabReportRepository labReportRepository; // Corrected type
     private final PatientInformationRepository patientInformationRepository; // Injected repository
 
     // DateTimeFormatters - consider making them static final if used frequently
@@ -184,12 +185,12 @@ public class LabReportService {
             }
         }
 
-        return laboratoryReportRepository.save(laboratoryReport);
+        return labReportRepository.save(laboratoryReport);
     }
 
     @Transactional(readOnly = true)
     public Optional<LaboratoryReport> getLabReportById(Long id) {
-        return laboratoryReportRepository.findById(id);
+        return labReportRepository.findById(id);
     }
     
     // Add methods for other CRUD operations (getAll, update, delete) later

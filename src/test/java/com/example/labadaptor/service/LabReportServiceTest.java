@@ -2,7 +2,8 @@ package com.example.labadaptor.service;
 
 import com.example.labadaptor.dto.*;
 import com.example.labadaptor.model.*;
-import com.example.labadaptor.repository.LaboratoryReportRepository;
+import com.example.labadaptor.repository.LabReportRepository;
+import com.example.labadaptor.repository.PatientInformationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.*;
 class LabReportServiceTest {
 
     @Mock
-    private LaboratoryReportRepository laboratoryReportRepository;
+    private LabReportRepository labReportRepository; // Corrected type
 
     @Mock
     private PatientInformationRepository patientInformationRepository; // Added mock
@@ -98,65 +99,66 @@ class LabReportServiceTest {
         sampleReportDTO.setTestInformation(Collections.singletonList(testInfoDTO));
     }
 
-    @Test
-    void setUp() {
-        // Create a comprehensive DTO for testing
-        sampleReportDTO = new LaboratoryReportDTO();
-        sampleReportDTO.setLabCode(UUID.randomUUID().toString());
-        sampleReportDTO.setLabName("General Hospital Labs");
-        sampleReportDTO.setDescription("Annual Checkup Report");
-
-        samplePatientDTO = new PatientInformationDTO(); // Store for direct access
-        samplePatientDTO.setId("PATIENT_001");
-        samplePatientDTO.setName("Johnathan Doe");
-        samplePatientDTO.setAge(42);
-        samplePatientDTO.setGender("Male");
-
-        ContactInformationDTO contactInfoDTO = new ContactInformationDTO();
-        contactInfoDTO.setEmail("john.doe@example.com");
-        contactInfoDTO.setPhone("555-123-4567");
-        contactInfoDTO.setAddress("123 Main St, Anytown, USA");
-        samplePatientDTO.setContactInformation(Collections.singletonList(contactInfoDTO));
-        sampleReportDTO.setPatientInformation(samplePatientDTO);
-
-        TestInformationDTO testInfoDTO = new TestInformationDTO();
-        testInfoDTO.setTestType("Blood Panel");
-        testInfoDTO.setTestPerformedDate("2023-10-01");
-        testInfoDTO.setTestPerformedTime("09:30");
-        testInfoDTO.setTestReportedDate("2023-10-02");
-        testInfoDTO.setTestReportedTime("14:00");
-
-        SpecimenDTO specimenDTO = new SpecimenDTO();
-        specimenDTO.setType("Blood");
-        specimenDTO.setCollectionMethod("Venipuncture");
-        specimenDTO.setCollectionDate("2023-10-01");
-        specimenDTO.setCollectionTime("09:15");
-        testInfoDTO.setSpecimen(specimenDTO);
-
-        TestResultDTO testResultDTO = new TestResultDTO();
-        testResultDTO.setParameter("Hemoglobin");
-        testResultDTO.setValue("14.5");
-        testResultDTO.setUnits("g/dL");
-        testResultDTO.setComments("Normal range");
-        ReferenceRangeDTO refRangeDTO = new ReferenceRangeDTO();
-        refRangeDTO.setMinRange("13.5");
-        refRangeDTO.setMaxRange("17.5");
-        testResultDTO.setReferenceRange(refRangeDTO);
-        testInfoDTO.setResults(Collections.singletonList(testResultDTO));
-
-        InterpretationDTO interpretationDTO = new InterpretationDTO();
-        interpretationDTO.setObservations("All values within normal limits.");
-        interpretationDTO.setCriticalAlerts("None");
-        interpretationDTO.setComments("Routine follow-up recommended.");
-        testInfoDTO.setInterpretation(interpretationDTO);
-
-        PathologistLabTechnicianInformationDTO techInfoDTO = new PathologistLabTechnicianInformationDTO();
-        techInfoDTO.setName("Dr. Emily White");
-        techInfoDTO.setContact("ext. 789");
-        testInfoDTO.setPathologistLabTechnicianInformation(techInfoDTO);
-
-        sampleReportDTO.setTestInformation(Collections.singletonList(testInfoDTO));
-    }
+    // Removed duplicate setUp method
+    // @Test  <-- This was incorrect, @BeforeEach is for setup method
+    // void setUp() {
+    //     // Create a comprehensive DTO for testing
+    //    sampleReportDTO = new LaboratoryReportDTO();
+    //     sampleReportDTO.setLabCode(UUID.randomUUID().toString());
+    //     sampleReportDTO.setLabName("General Hospital Labs");
+    //     sampleReportDTO.setDescription("Annual Checkup Report");
+    //
+    //     samplePatientDTO = new PatientInformationDTO(); // Store for direct access
+    //     samplePatientDTO.setId("PATIENT_001");
+    //     samplePatientDTO.setName("Johnathan Doe");
+    //     samplePatientDTO.setAge(42);
+    //     samplePatientDTO.setGender("Male");
+    //
+    //     ContactInformationDTO contactInfoDTO = new ContactInformationDTO();
+    //     contactInfoDTO.setEmail("john.doe@example.com");
+    //     contactInfoDTO.setPhone("555-123-4567");
+    //     contactInfoDTO.setAddress("123 Main St, Anytown, USA");
+    //     samplePatientDTO.setContactInformation(Collections.singletonList(contactInfoDTO));
+    //     sampleReportDTO.setPatientInformation(samplePatientDTO);
+    //
+    //     TestInformationDTO testInfoDTO = new TestInformationDTO();
+    //     testInfoDTO.setTestType("Blood Panel");
+    //     testInfoDTO.setTestPerformedDate("2023-10-01");
+    //     testInfoDTO.setTestPerformedTime("09:30");
+    //     testInfoDTO.setTestReportedDate("2023-10-02");
+    //     testInfoDTO.setTestReportedTime("14:00");
+    //
+    //     SpecimenDTO specimenDTO = new SpecimenDTO();
+    //     specimenDTO.setType("Blood");
+    //     specimenDTO.setCollectionMethod("Venipuncture");
+    //     specimenDTO.setCollectionDate("2023-10-01");
+    //     specimenDTO.setCollectionTime("09:15");
+    //     testInfoDTO.setSpecimen(specimenDTO);
+    //
+    //     TestResultDTO testResultDTO = new TestResultDTO();
+    //     testResultDTO.setParameter("Hemoglobin");
+    //     testResultDTO.setValue("14.5");
+    //     testResultDTO.setUnits("g/dL");
+    //     testResultDTO.setComments("Normal range");
+    //     ReferenceRangeDTO refRangeDTO = new ReferenceRangeDTO();
+    //     refRangeDTO.setMinRange("13.5");
+    //     refRangeDTO.setMaxRange("17.5");
+    //     testResultDTO.setReferenceRange(refRangeDTO);
+    //     testInfoDTO.setResults(Collections.singletonList(testResultDTO));
+    //
+    //     InterpretationDTO interpretationDTO = new InterpretationDTO();
+    //     interpretationDTO.setObservations("All values within normal limits.");
+    //     interpretationDTO.setCriticalAlerts("None");
+    //     interpretationDTO.setComments("Routine follow-up recommended.");
+    //     testInfoDTO.setInterpretation(interpretationDTO);
+    //
+    //     PathologistLabTechnicianInformationDTO techInfoDTO = new PathologistLabTechnicianInformationDTO();
+    //     techInfoDTO.setName("Dr. Emily White");
+    //     techInfoDTO.setContact("ext. 789");
+    //     testInfoDTO.setPathologistLabTechnicianInformation(techInfoDTO);
+    //
+    //     sampleReportDTO.setTestInformation(Collections.singletonList(testInfoDTO));
+    // } // This closing brace was for the commented out setUp method.
 
     @Test
     void createLabReport_whenPatientDoesNotExist_mapsNewPatientCorrectly() {
@@ -164,7 +166,7 @@ class LabReportServiceTest {
         when(patientInformationRepository.findByPatientId(samplePatientDTO.getId())).thenReturn(Optional.empty());
         LaboratoryReport savedEntityMock = new LaboratoryReport(); // Mock of what repo save returns
         savedEntityMock.setId(1L);
-        when(laboratoryReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
+        when(labReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
 
         // When
         LaboratoryReport result = labReportService.createLabReport(sampleReportDTO);
@@ -176,7 +178,7 @@ class LabReportServiceTest {
         verify(patientInformationRepository).findByPatientId(samplePatientDTO.getId());
 
         ArgumentCaptor<LaboratoryReport> reportCaptor = ArgumentCaptor.forClass(LaboratoryReport.class);
-        verify(laboratoryReportRepository).save(reportCaptor.capture());
+        verify(labReportRepository).save(reportCaptor.capture());
         LaboratoryReport capturedReport = reportCaptor.getValue();
 
         // Assert new PatientInformation details
@@ -223,7 +225,7 @@ class LabReportServiceTest {
         when(patientInformationRepository.findByPatientId(samplePatientDTO.getId())).thenReturn(Optional.of(existingPatientEntity));
         LaboratoryReport savedEntityMock = new LaboratoryReport();
         savedEntityMock.setId(1L);
-        when(laboratoryReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
+        when(labReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
 
         // When
         labReportService.createLabReport(sampleReportDTO);
@@ -232,7 +234,7 @@ class LabReportServiceTest {
         verify(patientInformationRepository).findByPatientId(samplePatientDTO.getId());
 
         ArgumentCaptor<LaboratoryReport> reportCaptor = ArgumentCaptor.forClass(LaboratoryReport.class);
-        verify(laboratoryReportRepository).save(reportCaptor.capture());
+        verify(labReportRepository).save(reportCaptor.capture());
         LaboratoryReport capturedReport = reportCaptor.getValue();
 
         // Assert PatientInformation is the existing one, but updated
@@ -277,12 +279,12 @@ class LabReportServiceTest {
         when(patientInformationRepository.findByPatientId(samplePatientDTO.getId())).thenReturn(Optional.empty());
         LaboratoryReport savedEntityMock = new LaboratoryReport();
         savedEntityMock.setId(1L);
-        when(laboratoryReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
+        when(labReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
 
         labReportService.createLabReport(sampleReportDTO);
 
         ArgumentCaptor<LaboratoryReport> reportCaptor = ArgumentCaptor.forClass(LaboratoryReport.class);
-        verify(laboratoryReportRepository).save(reportCaptor.capture());
+        verify(labReportRepository).save(reportCaptor.capture());
         LaboratoryReport capturedReport = reportCaptor.getValue();
 
         // Assert TestInformation (assuming one in sample)
@@ -313,12 +315,12 @@ class LabReportServiceTest {
 
         LaboratoryReport savedEntityMock = new LaboratoryReport();
         savedEntityMock.setId(1L);
-        when(laboratoryReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
+        when(labReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
 
         labReportService.createLabReport(sampleReportDTO);
 
         ArgumentCaptor<LaboratoryReport> reportCaptor = ArgumentCaptor.forClass(LaboratoryReport.class);
-        verify(laboratoryReportRepository).save(reportCaptor.capture());
+        verify(labReportRepository).save(reportCaptor.capture());
         LaboratoryReport capturedReport = reportCaptor.getValue();
         assertNull(capturedReport.getTestInformation().get(0).getTestPerformedDate(),
                 "Date should be null after parsing error.");
@@ -330,12 +332,12 @@ class LabReportServiceTest {
 
         LaboratoryReport savedEntityMock = new LaboratoryReport();
         savedEntityMock.setId(1L);
-        when(laboratoryReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
+        when(labReportRepository.save(any(LaboratoryReport.class))).thenReturn(savedEntityMock);
 
 
         labReportService.createLabReport(sampleReportDTO);
         ArgumentCaptor<LaboratoryReport> reportCaptor = ArgumentCaptor.forClass(LaboratoryReport.class);
-        verify(laboratoryReportRepository).save(reportCaptor.capture());
+        verify(labReportRepository).save(reportCaptor.capture());
         LaboratoryReport capturedReport = reportCaptor.getValue();
 
         assertNull(capturedReport.getTestInformation().get(0).getTestPerformedTime(),
@@ -348,23 +350,23 @@ class LabReportServiceTest {
         Long reportId = 1L;
         LaboratoryReport mockReport = new LaboratoryReport(); // Populate if needed for deeper assertion
         mockReport.setId(reportId);
-        when(laboratoryReportRepository.findById(reportId)).thenReturn(Optional.of(mockReport));
+        when(labReportRepository.findById(reportId)).thenReturn(Optional.of(mockReport));
 
         Optional<LaboratoryReport> result = labReportService.getLabReportById(reportId);
 
         assertTrue(result.isPresent());
         assertEquals(reportId, result.get().getId());
-        verify(laboratoryReportRepository).findById(reportId);
+        verify(labReportRepository).findById(reportId);
     }
 
     @Test
     void getLabReportById_whenReportDoesNotExist_returnsEmptyOptional() {
         Long reportId = 2L;
-        when(laboratoryReportRepository.findById(reportId)).thenReturn(Optional.empty());
+        when(labReportRepository.findById(reportId)).thenReturn(Optional.empty());
 
         Optional<LaboratoryReport> result = labReportService.getLabReportById(reportId);
 
         assertFalse(result.isPresent());
-        verify(laboratoryReportRepository).findById(reportId);
+        verify(labReportRepository).findById(reportId);
     }
 }

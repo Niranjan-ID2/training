@@ -45,8 +45,6 @@ public class LabReportController {
             LaboratoryReport createdReport = labReportService.createLabReport(reportDTO);
             return new ResponseEntity<>(createdReport, HttpStatus.CREATED);
 
-        } catch (JsonProcessingException e) { // From objectMapper.valueToTree if used
-            return ResponseEntity.badRequest().body("Error processing report DTO: " + e.getMessage());
         } catch (IllegalArgumentException e) { // Catch potential errors from service layer
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) { // Catch-all for other unexpected errors
